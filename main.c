@@ -28,7 +28,6 @@ enum state {
 typedef struct Game {
 	enum player player;
 	enum state state;
-	int (* play)();
 	int board[9];
 } Game;
 
