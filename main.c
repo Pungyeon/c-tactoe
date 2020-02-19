@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 enum player {
 	NONE,
@@ -41,16 +42,32 @@ int moves_left(Game *game) {
 	return count;
 }
 
+enum position winning_states[8][3] = {
+        {TOP_LEFT,  TOP_MID,   TOP_RIGHT},
+        {MID_LEFT,  MID_MID,   MID_RIGHT},
+        {BOT_LEFT,  BOT_MID,   BOT_RIGHT},
+        {TOP_LEFT,  MID_LEFT,  BOT_LEFT},
+        {TOP_MID,   MID_MID,   BOT_MID},
+        {TOP_RIGHT, MID_RIGHT, BOT_RIGHT},
+        {TOP_LEFT,  MID_MID,   BOT_RIGHT},
+        {BOT_LEFT,  MID_MID,   TOP_RIGHT}
+};
+
+bool check_state(Game *game, enum position a, enum position b, enum position c) {
+    return game->board[a] != NONE && game->board[a] == game->board[b] && game->board[b] == game->board[c];
+}
+
+bool check_states(Game *game, enum position states[8][3]) {
+    for (int i = 0; i < 8; i++) {
+        if (check_state(game, states[i][0], states[i][1], states[i][2])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 enum state game_state(Game *game) {
-	if ((game->board[TOP_LEFT] != NONE && game->board[TOP_LEFT] == game->board[TOP_MID] && game->board[TOP_LEFT] == game->board[TOP_RIGHT]) || 
-		(game->board[MID_LEFT] != NONE && game->board[MID_LEFT] == game->board[MID_MID] && game->board[MID_LEFT] == game->board[MID_RIGHT]) ||
-		(game->board[BOT_LEFT] != NONE && game->board[BOT_LEFT] == game->board[BOT_MID] && game->board[BOT_LEFT] == game->board[BOT_RIGHT]) ||
-		(game->board[TOP_LEFT] != NONE && game->board[TOP_LEFT] == game->board[MID_LEFT] && game->board[TOP_LEFT] == game->board[BOT_LEFT]) ||
-		(game->board[TOP_MID] != NONE && game->board[TOP_MID] == game->board[MID_MID] && game->board[TOP_MID] == game->board[BOT_MID]) ||
-		(game->board[TOP_RIGHT] != NONE && game->board[TOP_RIGHT] == game->board[MID_RIGHT] && game->board[TOP_RIGHT] == game->board[BOT_RIGHT]) ||
-		(game->board[TOP_LEFT] != NONE && game->board[TOP_LEFT] == game->board[MID_MID] && game->board[TOP_LEFT] == game->board[BOT_RIGHT]) ||
-		(game->board[TOP_RIGHT] != NONE && game->board[TOP_RIGHT] == game->board[MID_MID] && game->board[TOP_RIGHT] == game->board[BOT_LEFT]))
-	{
+	if (check_states(game, winning_states))  {
 		return WINNER;
 	}
 
@@ -62,13 +79,14 @@ enum state game_state(Game *game) {
 }
 
 
+
 int play(Game *self, enum position move) {
 	if (move > 8) {
 		fprintf(stderr, "move out of bounds, please choose a value between 0-8\n");
 		return 1;
 	}
 
-	if (self->board[move] != NONE) {
+	if (self->board[move] != (int)NONE) {
 		fprintf(stderr, "a piece already exists on chosen move, please try a different move\n");
 		return 2;
 	}
@@ -81,7 +99,7 @@ int play(Game *self, enum position move) {
 	return 0;
 }
 
-int print_game(Game *self) {
+void print_game(Game *self) {
 	int i;
 	for (i = 0; i < 9; i++) {
 		printf("%d ", self->board[i]);
